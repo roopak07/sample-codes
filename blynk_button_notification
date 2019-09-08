@@ -1,0 +1,56 @@
+/*Initializations */
+#define button_pin 2 //button pin
+#define led_pin 13 //led pin
+#define sensor_pin A0 // Alchol pin
+
+int button_val,sensor_val; 
+/*Library files */
+#include<String.h>
+#define BLYNK_PRINT Serial
+#include <ESP8266_Lib.h>
+#include <BlynkSimpleShieldEsp8266.h>
+BlynkTimer timer;
+#define EspSerial Serial
+#define ESP8266_BAUD 115200
+ESP8266 wifi(&EspSerial);
+/*wifi credentials*/
+char auth[] = "6ff7ab98554d4251aab127bd5d65a465"; // server token ID
+char ssid[] = "INDUS"; // wifi ID
+char pass[] = "Indus@123"; //wifi password
+
+void sendSensor()
+{
+ sensor_val=analogRead(sensor_pin);
+ Serial.println("Sensor value: "+String(sensor_val));
+ button_val=digitalRead(button_pin); 
+ Serial.println("Button value: "+String(button_val));
+ Blynk.virtualWrite(V1,sensor_val); // sensor value to blynk server
+ Blynk.virtualWrite(V2,button_val); // button value to blynk server
+ if(button_val == 1 )
+ {
+   Blynk.email("roopakleaprobots@gmail.com", "Button alert", "Button is Pressed");
+   Blynk.notify("Button pressed");
+   Blynk.tweet("Button Pressed");
+ }
+}
+void setup()
+{
+ Serial.begin(115200); 
+ pinMode(button_pin,INPUT);// button 1
+ pinMode(sensor_pin,INPUT);//  button 2
+ 
+ //wifi module
+ EspSerial.begin(ESP8266_BAUD);
+ delay(10);
+ Blynk.begin(auth, wifi, ssid, pass);
+ Blynk.email("roopakleaprobots@gmail.com"," notification", "IOT service started ");
+ Blynk.notify("IOT service started");
+ Blynk.tweet("IOT service started");
+ timer.setInterval(1000L, sendSensor);
+}
+
+void loop() 
+{
+ Blynk.run();
+ timer.run();
+}
